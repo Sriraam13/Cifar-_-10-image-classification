@@ -9,7 +9,7 @@ class_names = ['airplane', 'automobile', 'bird', 'cat', 'deer',
                'dog', 'frog', 'horse', 'ship', 'truck']
 
 # Load the pre-trained model (replace 'your_cifar10_model.h5' with your model file)
-model = load_model('cifar10_model.h5')
+model = load_model('CIFAR10_V4.h5')
 
 # Preprocessing function for CIFAR-10 images (32x32 images)
 def preprocess_image(image):
@@ -26,6 +26,7 @@ st.title('CIFAR-10 Image Classification')
 
 # File uploader for image upload
 uploaded_file = st.file_uploader("Upload an image", type=["jpg", "jpeg", "png"])
+
 
 if uploaded_file is not None:
     # Open the uploaded image
