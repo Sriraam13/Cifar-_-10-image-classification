@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CIFAR-10 Image Classification</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap" rel="stylesheet"> <!-- Google Font -->
+    <style>
+        /* CSS for centering content */
+        body {
+            display: flex;
+            justify-content: center; /* Center horizontally */
+            align-items: center;     /* Center vertically */
+            height: 100vh;          /* Full height of the viewport */
+            margin: 0;              /* Remove default margin */
+            background: url('static/DALL·E 2024-10-03 23.07.23 - A soothing and modern abstract background design for a web application, featuring soft gradient colors of teal and light gray with subtle organic shap.webp') no-repeat center center/cover; /* Background image */
+            font-family: 'Montserrat', sans-serif; /* Modern font */
+            flex-direction: column;  /* Stack elements vertically */
+            color: #333; /* Text color */
+            position: relative; /* For overlay */
+        }
+
+        /* Adding a semi-transparent overlay over the background */
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5); /* Black overlay with 50% transparency */
+            z-index: -1; /* Send it behind the content */
+        }
+
+        h1 {
+            margin-bottom: 20px; /* Space between the title and form */
+            font-size: 2.5em; /* Larger title font size */
+            text-align: center; /* Center title */
+            color: #4CAF50; /* Primary color */
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3); /* Light shadow for depth */
+        }
+
+        form {
+            text-align: center; /* Center form elements */
+            background-color: rgba(255, 255, 255, 0.9); /* Semi-transparent background */
+            padding: 30px; /* Padding around form */
+            border-radius: 12px; /* Optional rounded corners */
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2); /* Optional shadow */
+            transition: transform 0.2s; /* Smooth hover effect */
+            width: 300px; /* Set a fixed width */
+        }
+
+        form:hover {
+            transform: scale(1.02); /* Scale effect on hover */
+        }
+
+        label {
+            font-weight: 600; /* Bold label text */
+            margin-bottom: 10px; /* Space below label */
+            display: block; /* Block display for proper spacing */
+            color: #555; /* Darker text for labels */
+        }
+
+        /* Hide the default file input */
+        input[type="file"] {
+            display: none; /* Hide the default file input */
+        }
+
+        .custom-file-upload {
+            display: inline-block;
+            padding: 12px 20px; /* Padding for button */
+            cursor: pointer; /* Pointer cursor on hover */
+            background-color: #4CAF50; /* Green background */
+            color: white; /* White text */
+            border: none; /* Remove border */
+            border-radius: 5px; /* Rounded corners */
+            font-size: 1em; /* Button font size */
+            transition: background-color 0.3s, transform 0.3s; /* Smooth transition */
+            margin-top: 10px; /* Space above button */
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2); /* Shadow effect */
+        }
+
+        .custom-file-upload:hover {
+            background-color: #45a049; /* Darker green on hover */
+            transform: translateY(-2px); /* Lift effect on hover */
+        }
+
+        /* Enhanced Predict button styles */
+        button {
+            padding: 12px 25px; /* Padding for the Predict button */
+            background: linear-gradient(90deg, #6A9C8F, #4CAF50); /* Gradient background */
+            color: white; /* White text */
+            border: none; /* Remove border */
+            border-radius: 5px; /* Rounded corners */
+            font-size: 1.2em; /* Increased font size */
+            cursor: pointer; /* Pointer cursor on hover */
+            transition: transform 0.2s, box-shadow 0.3s, background-color 0.3s; /* Smooth transitions */
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Shadow effect */
+            margin-top: 15px; /* Space above button */
+        }
+
+        button:hover {
+            transform: translateY(-2px); /* Lift effect on hover */
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3); /* Darker shadow on hover */
+            background-color: #45a049; /* Darker green on hover */
+        }
+
+        /* Styles for image preview */
+        #preview {
+            margin-top: 20px; /* Space above image preview */
+            display: none; /* Hide preview by default */
+            text-align: center; /* Center image */
+        }
+
+        #preview img {
+            max-width: 100%; /* Limit preview image width */
+            max-height: 300px; /* Limit preview image height */
+            border-radius: 12px; /* Optional rounded corners */
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2); /* Shadow effect for image */
+        }
+
+        /* Styles for prediction result */
+        #result {
+            margin-top: 20px; /* Space above result */
+            text-align: center; /* Center result */
+            display: none; /* Hide result by default */
+            padding: 15px; /* Padding for result */
+            border: 1px solid #4CAF50; /* Green border */
+            border-radius: 8px; /* Rounded corners */
+            background-color: rgba(255, 255, 255, 0.9); /* Light background */
+        }
+
+        #result h3 {
+            margin-bottom: 10px; /* Space below result heading */
+            color: #333; /* Darker color for result heading */
+        }
+
+        #result p {
+            font-size: 1.2em; /* Increase font size for result text */
+            color: #666; /* Darker text for result */
+        }
+    </style>
+</head>
+<body>
+    <div>
+        <h1>CIFAR-10 Image Classification</h1>
+        <form id="uploadForm" onsubmit="return submitForm(event)">
+            <label for="file">Upload CIFAR Image:</label>
+            <input type="file" id="file" name="file" accept="image/*" onchange="previewImage(event)">
+            <label class="custom-file-upload" for="file">Choose File</label>
+            <button type="submit">Predict</button>
+        </form>
+        
+        <div id="preview">
+            <h3>Uploaded Image Preview:</h3>
+            <img id="previewImage" src="" alt="Uploaded Image">
+        </div>
+
+        <div id="result">
+            <h3>Prediction Result:</h3>
+            <p id="predictedClass"></p>
+            <p id="confidenceLevel"></p>
+        </div>
+    </div>
+
+    <script>
+        function previewImage(event) {
+            const input = event.target; // Get the input element
+            const file = input.files[0]; // Get the uploaded file
+            const previewDiv = document.getElementById('preview'); // Get the preview div
+            const previewImage = document.getElementById('previewImage'); // Get the img element
+
+            if (file) {
+                const reader = new FileReader(); // Create a FileReader to read the file
+                reader.onload = function(e) {
+                    previewImage.src = e.target.result; // Set the img src to the file data
+                    previewDiv.style.display = 'block'; // Show the preview div
+                };
+                reader.readAsDataURL(file); // Read the file as a data URL
+            }
+        }
+
+        function submitForm(event) {
+            event.preventDefault(); // Prevent default form submission
+
+            const formData = new FormData(document.getElementById('uploadForm')); // Create FormData object
+
+            fetch('/predict', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    alert(data.error); // Show error message
+                } else {
+                    // Display prediction results
+                    document.getElementById('predictedClass').innerText = `Predicted Class: ${data.predicted_class}`;
+                    document.getElementById('confidenceLevel').innerText = `Confidence: ${data.confidence.toFixed(2)}%`;
+                    document.getElementById('result').style.display = 'block'; // Show result div
+                }
+            })
+            .catch(error => console.error('Error:', error));
+
+            return false; // Prevent form submission
+        }
+    </script>
+</body>

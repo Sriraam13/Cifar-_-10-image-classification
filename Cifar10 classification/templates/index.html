@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CIFAR-10 Image Classification</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap" rel="stylesheet"> <!-- Google Font -->
+    <style>
+        /* CSS for centering content and layout */
+        body {
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            align-items: center;
+            margin: 0;
+            background: url("https://res.cloudinary.com/dcsduqstu/image/upload/v1728407250/3409297_cfd59e.jpg ") no-repeat center center/cover; /* Replace with actual background image file path */
+            font-family: 'Montserrat', sans-serif;
+            color: #ededed;
+            min-height: 100vh;
+            overflow-y: auto; /* Enable vertical scrolling */
+            position: relative;
+            padding-bottom: 150px; /* Space for the "Contact Us" section */
+        }
+
+        header {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            padding: 25px 0; /* Broader header */
+            text-align: center;
+            font-size: 2.5em;
+            background-color: rgba(0, 0, 0, 0.9);
+            color: white;
+            z-index: 1000;
+        }
+
+        /* Align the logo in the top-right corner */
+        #logo {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            width: 100px;
+            z-index: 1001;
+        }
+
+        .container {
+            display: flex;
+            justify-content: space-between; /* Align LHS and RHS */
+            align-items: center;
+            height: 100vh;
+            padding: 20px;
+        }
+
+        /* LHS Form styling */
+        .lhs {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            background-color: rgba(252, 246, 246, 0.9);
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+            width: 120%; /* Take 40% of the space */
+        }
+
+        h1 {
+            margin-bottom: 20px;
+            font-size: 2.5em;
+            color: #4CAF50;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        h2 {
+            font-size: 1.5em;
+            color: #e2e0e0;
+            margin-bottom: 15px;
+        }
+
+        form {
+            background-color: rgba(255, 255, 255, 0.9);
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            margin: 0 auto;
+            width: 300px;
+            transition: transform 0.2s;
+        }
+
+        label {
+            font-weight: 600;
+            margin-bottom: 10px;
+            display: block;
+            color: #555;
+            font-size: 1.2em;
+        }
+
+        input[type="file"] {
+            display: none; /* Hide default file input */
+        }
+
+        .custom-file-upload {
+            display: inline-block;
+            padding: 12px 20px;
+            cursor: pointer;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 1em;
+            margin-top: 10px;
+            transition: background-color 0.3s, transform 0.3s;
+        }
+
+        .custom-file-upload:hover {
+            background-color: #45a049;
+        }
+
+        button {
+            padding: 12px 25px;
+            background: linear-gradient(90deg, #6A9C8F, #4CAF50);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 1.2em;
+            cursor: pointer;
+            margin-top: 15px;
+            transition: background-color 0.3s, transform 0.2s;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            background-color: #45a049;
+        }
+
+        /* RHS image preview styling */
+        .rhs {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 50%; /* Take 50% of the space */
+            padding: 120px;
+            background-color: rgba(255, 255, 255, 0.8);
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        #previewImage {
+            max-width: 100%;
+            max-height: 300px;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        #result {
+            margin-top: 20px;
+            text-align: center;
+            padding: 15px;
+            border: 1px solid #4CAF50;
+            border-radius: 8px;
+            background-color: rgba(255, 255, 255, 0.9);
+        }
+
+        #result h3 {
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        #result p {
+            font-size: 1.2em;
+            color: #666;
+        }
+
+        #contact h2 {
+            margin-bottom: 20px;
+            font-size: 2em;
+        }
+
+        #contact p {
+            font-size: 1.2em;
+            margin: 5px 0;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Header -->
+    <header>
+        Deep Summit Project 1.0
+    </header>
+
+    <!-- Logo in the top-right corner -->
+<img src="https://res.cloudinary.com/dos7kgv22/image/upload/v1728447331/logo_dksjci.png" alt="logo" id="logo"></a>
+
+    <div class="container">
+        <!-- LHS: File upload form -->
+        <div class="lhs">
+            <h1>CIFAR-10 Image Classification</h1>
+            <h2>Upload Image for Classification:</h2>
+            <form id="uploadForm" onsubmit="return submitForm(event)">
+                <label for="file">Choose CIFAR Image:</label>
+                <input type="file" id="file" name="file" accept="image/*" onchange="previewImage(event)">
+                <label class="custom-file-upload" for="file">Browse File</label>
+                <button type="submit">Classify Image</button>
+            </form>
+        </div>
+
+        <!-- RHS: Image preview and results -->
+        <div class="rhs" id="previewSection" style="display:none;">
+            <div id="preview">
+                <h3>Uploaded Image Preview:</h3>
+                <img id="previewImage" src="" alt="Uploaded Image">
+            </div>
+
+            <div id="result" style="display:none;">
+                <h3>Prediction Result:</h3>
+                <p id="predictedClass"></p>
+                <p id="confidenceLevel"></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contact Section at the bottom -->
+    <div id="contact">
+        <h2>Contact Us</h2>
+        <p>Team Member 1: Shyam Sundar </p>
+        <p>Team Member 2: Sriraam S P</p>
+        <p>Team Member 3: Selva Narmatha</p>
+    </div>
+
+    <script>
+        // Preview image
+        function previewImage(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('previewImage').src = e.target.result;
+                    document.getElementById('previewSection').style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        // Handle form submission
+        function submitForm(event) {
+            event.preventDefault(); // Prevent form default behavior
+
+            const formData = new FormData(document.getElementById('uploadForm'));
+
+            fetch('/predict', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    alert(data.error);
+                } else {
+                    // Show prediction results
+                    document.getElementById('predictedClass').innerText = `Predicted Class: ${data.predicted_class}`;
+                    document.getElementById('confidenceLevel').innerText = `Confidence Level: ${data.confidence.toFixed(2)}%`;
+                    document.getElementById('result').style.display = 'block'; 
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        }
+    </script>
+</body>
+</html>
